@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Reglas base de accesibilidad por Cameron */
+body {
+  background-color: #FAF8F5; /* Nuestro tono Crema corporativo */
+  -webkit-font-smoothing: antialiased;
+}

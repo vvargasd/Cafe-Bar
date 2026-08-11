@@ -1,0 +1,16 @@
+src
+├── App.tsx
+├── assets
+│   ├── hero.png
+│   ├── react.svg
+│   └── vite.svg
+├── components
+│   ├── PosScreen.tsx
+│   └── ProductCatalog.tsx
+├── index.css
+├── main.tsx
+├── store
+│   └── cartStore.ts
+└── types
+
+5 directories, 9 files
