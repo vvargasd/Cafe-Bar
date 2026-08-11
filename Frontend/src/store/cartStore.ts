@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { saveTicketLocal } from '../database/db';
 
 // 1. Interfaces basadas estrictamente en el contrato de Chase
 export interface Product {
@@ -23,10 +24,11 @@ interface CartStore {
   activeTable: string | null;
   setActiveTable: (tableName: string | null) => void;
   payTable: (tableName: string) => void;
+  checkout: (tableName: string | null) => Promise<void>;
 }
 
 // 2. Creación del store con tipado fuerte
-export const useCartStore = create<CartStore>((set) => ({
+export const useCartStore = create<CartStore>((set, get) => ({
   orderItems: [],
   tableOrders: {},
   activeTable: null,
@@ -36,11 +38,27 @@ export const useCartStore = create<CartStore>((set) => ({
 payTable: (tableName) => set((state) => {
   const newTableOrders = { ...state.tableOrders };
   delete newTableOrders[tableName]; // Eliminamos la cuenta de la mesa (¡ya pagó!)
-  return { 
+  return {
     tableOrders: newTableOrders,
     activeTable: null // Salimos del modo revisión
   };
 }),
+
+  // Persiste el ticket en RxDB primero; solo si eso tiene éxito se limpia el estado en memoria
+  checkout: async (tableName) => {
+    const state = get();
+    const items = tableName ? (state.tableOrders[tableName] || []) : state.orderItems;
+    if (items.length === 0) return;
+
+    const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    await saveTicketLocal(items, total);
+
+    if (tableName) {
+      get().payTable(tableName);
+    } else {
+      get().clearOrder();
+    }
+  },
   sendToTable: (tableName) => set((state) => {
   if (state.orderItems.length === 0) return state; // Si la comanda está vacía, no hace nada
 

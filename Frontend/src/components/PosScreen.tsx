@@ -13,7 +13,7 @@ type TabType = 'products' | 'Mesas' | 'Pendientes';
 
 export const PosScreen: React.FC = () => {
   // Consumo tipado del estado global de Zustand
-  const { orderItems, clearOrder, removeProduct, activeTable, setActiveTable, tableOrders, payTable } = useCartStore();
+  const { orderItems, removeProduct, activeTable, setActiveTable, tableOrders, checkout } = useCartStore();
 
   // Estado local fuertemente tipado
   const [activeTab, setActiveTab] = useState<TabType>('products');
@@ -148,7 +148,7 @@ export const PosScreen: React.FC = () => {
 
           <motion.button 
             whileTap={{ scale: 0.98 }}
-            onClick={() => activeTable ? payTable(activeTable) : clearOrder()}
+            onClick={() => checkout(activeTable)}
             className="w-full bg-[#4CAF50] hover:bg-[#43A047] text-white py-4 rounded-xl font-bold text-xl transition-colors shadow-sm"
           >
             Cobrar en Caja
