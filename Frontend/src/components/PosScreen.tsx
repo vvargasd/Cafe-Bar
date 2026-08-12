@@ -6,25 +6,26 @@ import { motion } from 'framer-motion';
 import { useCartStore } from '../store/cartStore';
 import { ProductCatalog } from './ProductCatalog';
 import { TableMap } from './TableMap';
-import { Trash2 } from 'lucide-react';
+import { DailyCloseSummary } from './DailyCloseSummary';
+import { Trash2, Lock } from 'lucide-react';
 
 // Definimos estrictamente las vistas permitidas
-type TabType = 'products' | 'Mesas' | 'Pendientes';
+type TabType = 'Productos' | 'Mesas' | 'Pendientes' | 'Cierre';
 
 export const PosScreen: React.FC = () => {
   // Consumo tipado del estado global de Zustand
   const { orderItems, removeProduct, activeTable, setActiveTable, tableOrders, checkout } = useCartStore();
 
   // Estado local fuertemente tipado
-  const [activeTab, setActiveTab] = useState<TabType>('products');
+  const [activeTab, setActiveTab] = useState<TabType>('Productos');
 
   // Lógica de los "Dos Modos"
   const currentDisplayItems = activeTable ? (tableOrders[activeTable] || []) : orderItems;
   const panelTitle = activeTable ? `Cuenta: Mesa ${activeTable}` : 'Nueva Orden';
   const currentTotal = currentDisplayItems.reduce((total, item) => total + (item.price * item.quantity), 0);
 
-  // Array tipado para iterar los botones de navegación de forma segura
-  const tabs: TabType[] = ['products', 'Mesas', 'Pendientes'];
+  // Array tipado para iterar los botones de navegación de forma segura ('Cierre' no entra aquí: vive aparte, en el ícono discreto)
+  const tabs: TabType[] = ['Productos', 'Mesas', 'Pendientes'];
 
   return (
     <div className="flex h-screen w-full bg-[#FAF8F5] font-sans">
@@ -35,7 +36,7 @@ export const PosScreen: React.FC = () => {
       <section className="w-[70%] p-6 flex flex-col border-r border-[#E8E2D9]">
         
         {/* Navegación Superior - Zonas Táctiles "Barista-Proof" */}
-        <nav className="flex gap-4 mb-8">
+        <nav className="flex items-center gap-4 mb-8">
           {tabs.map((tab) => (
             <motion.button
               key={tab}
@@ -53,13 +54,28 @@ export const PosScreen: React.FC = () => {
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </motion.button>
           ))}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              setActiveTab('Cierre');
+              setActiveTable(null);
+            }}
+            aria-label="Cerrar día"
+            className={`ml-auto h-12 w-12 flex items-center justify-center rounded-lg border transition-colors ${
+              activeTab === 'Cierre'
+                ? 'bg-[#3E2723] border-[#3E2723] text-white'
+                : 'bg-white border-[#D7CCC8] text-[#795548] hover:bg-[#EFEBE9]'
+            }`}
+          >
+            <Lock aria-hidden="true" className="w-5 h-5" />
+          </motion.button>
         </nav>
 
         {/* Cuadrícula de Productos */}
         {/* Cuadrícula de Productos (Delegada a nuestro nuevo componente) */}
-        {activeTab === 'products' && (
+        {activeTab === 'Productos' && (
           <div className="flex-1 overflow-hidden">
-            <ProductCatalog />         
+            <ProductCatalog />
           </div>
         )}
 
@@ -72,6 +88,11 @@ export const PosScreen: React.FC = () => {
         {activeTab === 'Pendientes' && (
           <div className="flex-1 flex items-center justify-center text-[#795548] text-xl">
             Directorio de Clientes Frecuentes en construcción... 📒
+          </div>
+        )}
+        {activeTab === 'Cierre' && (
+          <div className="flex-1 overflow-hidden">
+            <DailyCloseSummary />
           </div>
         )}
 

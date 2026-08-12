@@ -63,18 +63,47 @@ export const getDatabase = async (): Promise<RxDatabase> => {
   return dbPromise;
 };
 
+export interface Ticket {
+  id: string;
+  items: CartItem[];
+  total: number;
+  synced: boolean;
+  timestamp: number;
+}
+
 // 3. Función auxiliar para guardar una venta (ID siempre generado en cliente)
-export const saveTicketLocal = async (items: CartItem[], total: number) => {
+export const saveTicketLocal = async (items: CartItem[], total: number): Promise<Ticket> => {
   const db = await getDatabase();
-  const newTicket = {
+  const newTicket: Ticket = {
     id: uuidv4(), // ID único universal (A prueba de colisiones)
     items: items,
     total: total,
-    synced: false, // ¡Chase se encargará de esto después!
+    synced: false, // pendiente de sincronizar con el PC central
     timestamp: Date.now()
   };
 
   await db.tickets.insert(newTicket);
   console.log('✅ Venta guardada permanentemente en la Tablet:', newTicket);
   return newTicket;
+};
+
+// 4. Función auxiliar para el resumen de cierre de día (consulta 100% local)
+export const getTodayTickets = async (): Promise<Ticket[]> => {
+  const db = await getDatabase();
+
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date();
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const results = await db.tickets.find({
+    selector: {
+      timestamp: {
+        $gte: startOfDay.getTime(),
+        $lte: endOfDay.getTime()
+      }
+    }
+  }).exec();
+
+  return results.map((doc) => doc.toJSON());
 };
