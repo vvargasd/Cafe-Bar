@@ -68,7 +68,20 @@ payTable: (tableName) => set((state) => {
   // Obtenemos lo que ya tenía la mesa (o un arreglo vacío si es nueva)
   const existingTableItems = state.tableOrders[tableName] || [];
 
-  const updatedTableItems = [...existingTableItems, ...state.orderItems];
+  // Fusionamos por id: si el producto ya está en la mesa, sumamos cantidades en vez de duplicar la entrada
+  // (una entrada duplicada con el mismo id rompe la key de React en la lista de la comanda)
+  const updatedTableItems = [...existingTableItems];
+  for (const newItem of state.orderItems) {
+    const existingIndex = updatedTableItems.findIndex((item) => item.id === newItem.id);
+    if (existingIndex >= 0) {
+      updatedTableItems[existingIndex] = {
+        ...updatedTableItems[existingIndex],
+        quantity: updatedTableItems[existingIndex].quantity + newItem.quantity,
+      };
+    } else {
+      updatedTableItems.push(newItem);
+    }
+  }
 
   return {
     tableOrders: {
