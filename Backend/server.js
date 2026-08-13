@@ -1,7 +1,6 @@
 // server.js
 import express from 'express';
 import cors from 'cors';
-import crypto from 'crypto';
 import { upsertTicket } from './db.js';
 
 const app = express();
@@ -33,29 +32,6 @@ app.get('/api/v1/products', (req, res) => {
 
 app.get('/api/v1/inventory', (req, res) => {
     res.status(200).json(inventory);
-});
-
-app.post('/api/v1/sales', (req, res) => {
-    const { items, paymentMethod } = req.body;
-
-    if (!items || !Array.isArray(items) || items.length === 0 || !paymentMethod) {
-        return res.status(400).json({ error: "Payload inválido. Revise el contrato OpenAPI." });
-    }
-
-    // Deducción rudimentaria de inventario para consistencia del prototipo
-    items.forEach(item => {
-        const invItem = inventory.find(i => i.productId === item.productId);
-        if (invItem) {
-            // Asumiendo ventas en gramos para simplificar el modelo base
-            invItem.stockQuantity -= (item.quantity * 0.25); 
-        }
-    });
-
-    res.status(201).json({
-        transactionId: crypto.randomUUID(),
-        status: "completed",
-        timestamp: new Date().toISOString()
-    });
 });
 
 app.post('/api/v1/tickets/sync', (req, res) => {
