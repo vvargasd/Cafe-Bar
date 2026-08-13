@@ -59,14 +59,15 @@ payTable: (tableName) => set((state) => {
     } else {
       get().clearOrder();
     }
+
+    syncTickets(); // best-effort, en segundo plano: no bloquea el cobro
   },
   sendToTable: (tableName) => set((state) => {
   if (state.orderItems.length === 0) return state; // Si la comanda está vacía, no hace nada
 
   // Obtenemos lo que ya tenía la mesa (o un arreglo vacío si es nueva)
   const existingTableItems = state.tableOrders[tableName] || [];
-  
-  // Fusionamos los productos (aquí podríamos agruparlos por ID, pero por ahora los sumamos)
+
   const updatedTableItems = [...existingTableItems, ...state.orderItems];
 
   return {
