@@ -20,6 +20,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Base de datos local del PC nodo (Backend)
+*.sqlite
+*.sqlite-journal
+
 # Editores y sistema operativo
 .vscode/*
 !.vscode/extensions.json

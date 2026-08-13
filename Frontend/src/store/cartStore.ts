@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { saveTicketLocal } from '../database/db';
+import { syncTickets } from '../database/sync';
 
 // 1. Interfaces basadas estrictamente en el contrato de Chase
 export interface Product {
