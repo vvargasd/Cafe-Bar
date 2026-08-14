@@ -139,6 +139,10 @@ export const saveTicketLocal = async (items: CartItem[], total: number): Promise
 };
 
 // 4. Función auxiliar para el resumen de cierre de día (consulta 100% local)
+// Una venta normal se reconoce el día en que se hizo (timestamp). Un cargo a
+// fiado NO se reconoce el día en que se consumió: se reconoce el día en que
+// el cliente saldó su cuenta por completo (settledAt), sin importar cuándo
+// se generó cada ticket que compone esa deuda.
 export const getTodayTickets = async (): Promise<Ticket[]> => {
   const db = await getDatabase();
 
@@ -146,15 +150,17 @@ export const getTodayTickets = async (): Promise<Ticket[]> => {
   startOfDay.setHours(0, 0, 0, 0);
   const endOfDay = new Date();
   endOfDay.setHours(23, 59, 59, 999);
+  const start = startOfDay.getTime();
+  const end = endOfDay.getTime();
+  const isToday = (ts: number) => ts >= start && ts <= end;
 
-  const results = await db.tickets.find({
-    selector: {
-      timestamp: {
-        $gte: startOfDay.getTime(),
-        $lte: endOfDay.getTime()
-      }
-    }
-  }).exec();
+  const results = await db.tickets.find().exec();
 
-  return results.map((doc) => doc.toJSON());
+  return results
+    .map((doc) => doc.toJSON() as Ticket)
+    .filter((ticket) =>
+      ticket.customerId
+        ? ticket.settled && ticket.settledAt !== undefined && isToday(ticket.settledAt)
+        : isToday(ticket.timestamp)
+    );
 };
