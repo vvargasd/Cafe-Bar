@@ -4,10 +4,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useCartStore } from '../store/cartStore';
+import { useCustomerStore } from '../store/customerStore';
 import { ProductCatalog } from './ProductCatalog';
 import { TableMap } from './TableMap';
+import { CustomerList } from './CustomerList';
+import { CustomerRegistrationModal } from './CustomerRegistrationModal';
 import { DailyCloseSummary } from './DailyCloseSummary';
-import { Trash2, Lock } from 'lucide-react';
+import { Trash2, Lock, UserPlus } from 'lucide-react';
 import { formatCOP } from '../utils/currency';
 
 // Definimos estrictamente las vistas permitidas
@@ -16,14 +19,46 @@ type TabType = 'Productos' | 'Mesas' | 'Pendientes' | 'Cierre';
 export const PosScreen: React.FC = () => {
   // Consumo tipado del estado global de Zustand
   const { orderItems, removeProduct, activeTable, setActiveTable, tableOrders, checkout } = useCartStore();
+  const { customers, activeCustomerId, activeCustomerTickets, setActiveCustomer } = useCustomerStore();
 
   // Estado local fuertemente tipado
   const [activeTab, setActiveTab] = useState<TabType>('Productos');
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
-  // Lógica de los "Dos Modos"
-  const currentDisplayItems = activeTable ? (tableOrders[activeTable] || []) : orderItems;
-  const panelTitle = activeTable ? `Cuenta: Mesa ${activeTable}` : 'Nueva Orden';
-  const currentTotal = currentDisplayItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  const activeCustomer = activeCustomerId
+    ? customers.find((customer) => customer.id === activeCustomerId)
+    : null;
+
+  // La cuenta de un cliente puede venir de varios tickets abiertos (distintos días);
+  // se agrupan por producto para mostrarlos igual que la cuenta de una mesa
+  const customerDisplayItems = activeCustomerTickets.reduce<typeof orderItems>((merged, ticket) => {
+    for (const item of ticket.items) {
+      const existing = merged.find((entry) => entry.id === item.id);
+      if (existing) {
+        existing.quantity += item.quantity;
+      } else {
+        merged.push({ ...item });
+      }
+    }
+    return merged;
+  }, []);
+
+  // Lógica de los "Tres Modos": mesa, cliente (fiado) o nueva orden
+  const currentDisplayItems = activeTable
+    ? (tableOrders[activeTable] || [])
+    : activeCustomer
+      ? customerDisplayItems
+      : orderItems;
+  const panelTitle = activeTable
+    ? `Cuenta: Mesa ${activeTable}`
+    : activeCustomer
+      ? `Cuenta: ${activeCustomer.name}`
+      : 'Nueva Orden';
+  // En modo cliente el total es el saldo pendiente (descuenta abonos ya hechos),
+  // no la suma bruta de los ítems cargados
+  const currentTotal = activeCustomer
+    ? activeCustomer.balance
+    : currentDisplayItems.reduce((total, item) => total + (item.price * item.quantity), 0);
 
   // Array tipado para iterar los botones de navegación de forma segura ('Cierre' no entra aquí: vive aparte, en el ícono discreto)
   const tabs: TabType[] = ['Productos', 'Mesas', 'Pendientes'];
@@ -45,10 +80,11 @@ export const PosScreen: React.FC = () => {
               onClick={() => {
                 setActiveTab(tab);
                 setActiveTable(null);
+                setActiveCustomer(null);
               }}
               className={`h-14 px-8 rounded-lg font-bold text-lg transition-colors ${
-                activeTab === tab 
-                  ? 'bg-[#3E2723] text-white shadow-md' 
+                activeTab === tab
+                  ? 'bg-[#3E2723] text-white shadow-md'
                   : 'bg-white text-[#3E2723] border-2 border-[#3E2723]'
               }`}
             >
@@ -57,12 +93,21 @@ export const PosScreen: React.FC = () => {
           ))}
           <motion.button
             whileTap={{ scale: 0.95 }}
+            onClick={() => setIsRegisterModalOpen(true)}
+            aria-label="Registrar cliente"
+            className="ml-auto h-12 w-12 flex items-center justify-center rounded-lg border bg-white border-[#D7CCC8] text-[#795548] hover:bg-[#EFEBE9] transition-colors"
+          >
+            <UserPlus aria-hidden="true" className="w-5 h-5" />
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
             onClick={() => {
               setActiveTab('Cierre');
               setActiveTable(null);
+              setActiveCustomer(null);
             }}
             aria-label="Cerrar día"
-            className={`ml-auto h-12 w-12 flex items-center justify-center rounded-lg border transition-colors ${
+            className={`h-12 w-12 flex items-center justify-center rounded-lg border transition-colors ${
               activeTab === 'Cierre'
                 ? 'bg-[#3E2723] border-[#3E2723] text-white'
                 : 'bg-white border-[#D7CCC8] text-[#795548] hover:bg-[#EFEBE9]'
@@ -87,8 +132,8 @@ export const PosScreen: React.FC = () => {
           </div>
         )}
         {activeTab === 'Pendientes' && (
-          <div className="flex-1 flex items-center justify-center text-[#795548] text-xl">
-            Directorio de Clientes Frecuentes en construcción... 📒
+          <div className="flex-1 overflow-hidden">
+            <CustomerList />
           </div>
         )}
         {activeTab === 'Cierre' && (
@@ -153,16 +198,24 @@ export const PosScreen: React.FC = () => {
             </span>
           </div>
 
-          <motion.button
-            whileTap={{ scale: 0.98 }}
-            onClick={() => checkout(activeTable)}
-            className="w-full bg-[#4CAF50] hover:bg-[#43A047] text-white py-4 rounded-xl font-bold text-xl transition-colors shadow-sm"
-          >
-            Cobrar en Caja
-          </motion.button>
+          {/* La cuenta de un cliente a fiado se cobra/abona desde botones dedicados (#22); por ahora solo se muestra la cuenta */}
+          {!activeCustomer && (
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => checkout(activeTable)}
+              className="w-full bg-[#4CAF50] hover:bg-[#43A047] text-white py-4 rounded-xl font-bold text-xl transition-colors shadow-sm"
+            >
+              Cobrar en Caja
+            </motion.button>
+          )}
         </div>
 
       </aside>
+
+      <CustomerRegistrationModal
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+      />
     </div>
   );
 };
