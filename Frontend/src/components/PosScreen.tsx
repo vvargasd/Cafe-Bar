@@ -153,22 +153,7 @@ export const PosScreen: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex gap-2">
-            <motion.button 
-              whileTap={{ scale: 0.95 }}
-              className="flex-1 h-14 bg-[#D7CCC8] text-[#3E2723] font-bold rounded-lg border border-[#BCAAA4]"
-            >
-              A Mesa
-            </motion.button>
-            <motion.button 
-              whileTap={{ scale: 0.95 }}
-              className="flex-1 h-14 bg-[#D7CCC8] text-[#3E2723] font-bold rounded-lg border border-[#BCAAA4]"
-            >
-              A Cliente
-            </motion.button>
-          </div>
-
-          <motion.button 
+          <motion.button
             whileTap={{ scale: 0.98 }}
             onClick={() => checkout(activeTable)}
             className="w-full bg-[#4CAF50] hover:bg-[#43A047] text-white py-4 rounded-xl font-bold text-xl transition-colors shadow-sm"
