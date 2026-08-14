@@ -5,6 +5,7 @@ import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Coffee, CupSoda, Utensils, Candy, Star } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
+import { formatCOP } from '../utils/currency';
 
 type Category = '⭐ Más Vendidos' | 'Máquina' | 'Nevera' | 'Comida Rápida' | 'Confitería';
 
@@ -121,7 +122,7 @@ export const ProductCatalog: React.FC = () => {
               {product.name}
             </span>
             <span className="text-sm text-[#795548] font-medium mt-1">
-              ${product.price.toFixed(2)}
+              {formatCOP(product.price)}
             </span>
           </motion.button>
         ))}

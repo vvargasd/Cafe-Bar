@@ -8,6 +8,7 @@ import { ProductCatalog } from './ProductCatalog';
 import { TableMap } from './TableMap';
 import { DailyCloseSummary } from './DailyCloseSummary';
 import { Trash2, Lock } from 'lucide-react';
+import { formatCOP } from '../utils/currency';
 
 // Definimos estrictamente las vistas permitidas
 type TabType = 'Productos' | 'Mesas' | 'Pendientes' | 'Cierre';
@@ -135,7 +136,7 @@ export const PosScreen: React.FC = () => {
                     {item.name}
                   </span>
                   <span className="text-[#3E2723] font-bold text-lg">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {formatCOP(item.price * item.quantity)}
                   </span>
                 </motion.div>
               </div>
@@ -148,7 +149,7 @@ export const PosScreen: React.FC = () => {
           <div className="flex justify-between text-2xl font-bold text-[#3E2723] mb-4">
             <span>Total:</span>
             <span>
-              ${currentTotal.toFixed(2)}
+              {formatCOP(currentTotal)}
             </span>
           </div>
 

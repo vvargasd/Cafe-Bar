@@ -4,6 +4,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useCartStore } from '../store/cartStore';
+import { formatCOP } from '../utils/currency';
 
 export const TableMap: React.FC = () => {
   const tableOrders = useCartStore((state) => state.tableOrders);
@@ -55,7 +56,7 @@ export const TableMap: React.FC = () => {
               {isOccupied ? (
                 <div className="flex flex-col items-center">
                   <span className="text-lg text-[#D7CCC8]">{itemsInTable.length} ítems</span>
-                  <span className="text-2xl font-bold text-[#FFC107]">${tableTotal.toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-[#FFC107]">{formatCOP(tableTotal)}</span>
                 </div>
               ) : (
                 <span className="text-lg font-medium">Libre</span>

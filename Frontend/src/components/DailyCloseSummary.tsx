@@ -3,6 +3,7 @@
 // ==========================================
 import React, { useEffect, useState } from 'react';
 import { getTodayTickets, type Ticket } from '../database/db';
+import { formatCOP } from '../utils/currency';
 
 interface ProductSummary {
   id: string;
@@ -58,7 +59,7 @@ export const DailyCloseSummary: React.FC = () => {
       <div className="flex justify-between items-baseline mb-6">
         <h2 className="text-2xl font-bold text-[#3E2723]">Cierre de Día</h2>
         <span className="text-[#795548] text-lg">
-          {tickets.length} tickets · ${dayTotal.toFixed(2)}
+          {tickets.length} tickets · {formatCOP(dayTotal)}
         </span>
       </div>
 
@@ -81,10 +82,10 @@ export const DailyCloseSummary: React.FC = () => {
                   <td className="p-4 font-semibold text-[#3E2723]">{product.name}</td>
                   <td className="p-4 text-right text-[#3E2723]">{product.quantity}</td>
                   <td className="p-4 text-right text-[#3E2723]">
-                    ${(product.totalRevenue / product.quantity).toFixed(2)}
+                    {formatCOP(product.totalRevenue / product.quantity)}
                   </td>
                   <td className="p-4 text-right font-bold text-[#3E2723]">
-                    ${product.totalRevenue.toFixed(2)}
+                    {formatCOP(product.totalRevenue)}
                   </td>
                 </tr>
               ))}

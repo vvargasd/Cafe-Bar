@@ -12,28 +12,7 @@ app.use((req, res, next) => {
     setTimeout(next, 30);
 });
 
-// Datos en memoria (Persistencia volátil para el prototipo)
-const products = [
-    { id: "a1b2c3d4-1234-5678-90ab-cdef12345678", name: "Gesha Geisha", origin: "Panamá", price: 18.50 },
-    { id: "e5f6g7h8-1234-5678-90ab-cdef12345678", name: "Bourbon Rosado", origin: "Colombia", price: 12.00 },
-    { id: "i9j0k1l2-1234-5678-90ab-cdef12345678", name: "Yirgacheffe", origin: "Etiopía", price: 14.25 }
-];
-
-const inventory = [
-    { productId: "a1b2c3d4-1234-5678-90ab-cdef12345678", stockQuantity: 15.5, unit: "kg" },
-    { productId: "e5f6g7h8-1234-5678-90ab-cdef12345678", stockQuantity: 42.0, unit: "kg" },
-    { productId: "i9j0k1l2-1234-5678-90ab-cdef12345678", stockQuantity: 8.2, unit: "kg" }
-];
-
 // Endpoints
-app.get('/api/v1/products', (req, res) => {
-    res.status(200).json(products);
-});
-
-app.get('/api/v1/inventory', (req, res) => {
-    res.status(200).json(inventory);
-});
-
 app.post('/api/v1/tickets/sync', (req, res) => {
     const { tickets } = req.body;
 
