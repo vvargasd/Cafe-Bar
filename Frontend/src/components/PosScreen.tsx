@@ -9,6 +9,7 @@ import { ProductCatalog } from './ProductCatalog';
 import { TableMap } from './TableMap';
 import { CustomerList } from './CustomerList';
 import { CustomerRegistrationModal } from './CustomerRegistrationModal';
+import { CustomerPaymentModal } from './CustomerPaymentModal';
 import { DailyCloseSummary } from './DailyCloseSummary';
 import { Trash2, Lock, UserPlus } from 'lucide-react';
 import { formatCOP } from '../utils/currency';
@@ -19,11 +20,12 @@ type TabType = 'Productos' | 'Mesas' | 'Pendientes' | 'Cierre';
 export const PosScreen: React.FC = () => {
   // Consumo tipado del estado global de Zustand
   const { orderItems, removeProduct, activeTable, setActiveTable, tableOrders, checkout } = useCartStore();
-  const { customers, activeCustomerId, activeCustomerTickets, setActiveCustomer } = useCustomerStore();
+  const { customers, activeCustomerId, activeCustomerTickets, setActiveCustomer, payCustomer } = useCustomerStore();
 
   // Estado local fuertemente tipado
   const [activeTab, setActiveTab] = useState<TabType>('Productos');
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const activeCustomer = activeCustomerId
     ? customers.find((customer) => customer.id === activeCustomerId)
@@ -198,8 +200,25 @@ export const PosScreen: React.FC = () => {
             </span>
           </div>
 
-          {/* La cuenta de un cliente a fiado se cobra/abona desde botones dedicados (#22); por ahora solo se muestra la cuenta */}
-          {!activeCustomer && (
+          {activeCustomer ? (
+            <div className="flex gap-4">
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setIsPaymentModalOpen(true)}
+                className="flex-1 bg-white border-2 border-[#3E2723] text-[#3E2723] py-4 rounded-xl font-bold text-xl transition-colors"
+              >
+                Abonar
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                disabled={activeCustomer.balance <= 0}
+                onClick={() => payCustomer(activeCustomer.id, activeCustomer.balance)}
+                className="flex-1 bg-[#4CAF50] hover:bg-[#43A047] text-white py-4 rounded-xl font-bold text-xl transition-colors shadow-sm disabled:opacity-50"
+              >
+                Cobrar en Caja
+              </motion.button>
+            </div>
+          ) : (
             <motion.button
               whileTap={{ scale: 0.98 }}
               onClick={() => checkout(activeTable)}
@@ -216,6 +235,16 @@ export const PosScreen: React.FC = () => {
         isOpen={isRegisterModalOpen}
         onClose={() => setIsRegisterModalOpen(false)}
       />
+
+      {activeCustomer && (
+        <CustomerPaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={() => setIsPaymentModalOpen(false)}
+          customerId={activeCustomer.id}
+          customerName={activeCustomer.name}
+          balance={activeCustomer.balance}
+        />
+      )}
     </div>
   );
 };
