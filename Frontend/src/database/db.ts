@@ -1,10 +1,13 @@
 // ==========================================
 // 🗄️ db.ts - Base de Datos Local Embebida (RxDB)
 // ==========================================
-import { createRxDatabase, type RxDatabase } from 'rxdb';
+import { createRxDatabase, addRxPlugin, type RxDatabase } from 'rxdb';
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
+import { RxDBMigrationSchemaPlugin } from 'rxdb/plugins/migration-schema';
 import { v4 as uuidv4 } from 'uuid';
 import type { CartItem } from '../store/cartStore';
+
+addRxPlugin(RxDBMigrationSchemaPlugin);
 
 // 1. Definimos el Esquema (La estructura estricta de nuestra venta)
 const ticketSchema = {
