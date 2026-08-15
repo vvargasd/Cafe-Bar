@@ -5,12 +5,24 @@ src
 │   ├── react.svg
 │   └── vite.svg
 ├── components
+│   ├── CustomerList.tsx
+│   ├── CustomerPaymentModal.tsx
+│   ├── CustomerRegistrationModal.tsx
+│   ├── DailyCloseSummary.tsx
 │   ├── PosScreen.tsx
-│   └── ProductCatalog.tsx
+│   ├── ProductCatalog.tsx
+│   └── TableMap.tsx
+├── database
+│   ├── customers.ts
+│   ├── db.ts
+│   └── sync.ts
 ├── index.css
 ├── main.tsx
 ├── store
-│   └── cartStore.ts
-└── types
+│   ├── cartStore.ts
+│   └── customerStore.ts
+├── types
+└── utils
+    └── currency.ts
 
-5 directories, 9 files
+7 directories, 19 files
