@@ -2,6 +2,8 @@
 // 📊 DailyCloseSummary.tsx - Vista del 70% para Cierre de Día
 // ==========================================
 import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Download } from 'lucide-react';
 import { getTodayTickets, type Ticket } from '../database/db';
 import { formatCOP } from '../utils/currency';
 
@@ -36,6 +38,37 @@ const aggregateByProduct = (tickets: Ticket[]): ProductSummary[] => {
   return Array.from(byProduct.values()).sort((a, b) => b.totalRevenue - a.totalRevenue);
 };
 
+// Excel (sobre todo en configuración regional es-CO) abre un .csv por doble clic
+// usando ';' como separador de campo, no ',' — y necesita el BOM para acentos/UTF-8
+const downloadCSV = (products: ProductSummary[], dayTotal: number): void => {
+  const escapeCell = (cell: string): string =>
+    /[;"\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell;
+
+  const rows: string[][] = [
+    ['Producto', 'Unidades', 'Precio Unidad', 'Precio Total'],
+    ...products.map((product) => [
+      product.name,
+      String(product.quantity),
+      String(product.totalRevenue / product.quantity),
+      String(product.totalRevenue),
+    ]),
+    [],
+    ['Total del día', '', '', String(dayTotal)],
+  ];
+
+  const BOM = String.fromCharCode(0xfeff); // Excel necesita el BOM para leer acentos en UTF-8
+  const csvContent = rows.map((row) => row.map(escapeCell).join(';')).join('\n');
+  const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `cierre-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+
+  URL.revokeObjectURL(url);
+};
+
 export const DailyCloseSummary: React.FC = () => {
   const [tickets, setTickets] = useState<Ticket[] | null>(null);
 
@@ -56,11 +89,23 @@ export const DailyCloseSummary: React.FC = () => {
 
   return (
     <div className="h-full bg-[#FAF8F5] flex flex-col">
-      <div className="flex justify-between items-baseline mb-6">
+      <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-[#3E2723]">Cierre de Día</h2>
-        <span className="text-[#795548] text-lg">
-          {tickets.length} tickets · {formatCOP(dayTotal)}
-        </span>
+        <div className="flex items-center gap-4">
+          <span className="text-[#795548] text-lg">
+            {tickets.length} tickets · {formatCOP(dayTotal)}
+          </span>
+          {products.length > 0 && (
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => downloadCSV(products, dayTotal)}
+              className="h-12 px-4 flex items-center gap-2 rounded-lg border-2 border-[#3E2723] text-[#3E2723] font-bold transition-colors hover:bg-[#EFEBE9]"
+            >
+              <Download aria-hidden="true" className="w-5 h-5" />
+              Descargar Excel
+            </motion.button>
+          )}
+        </div>
       </div>
 
       {products.length === 0 ? (
