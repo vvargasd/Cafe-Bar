@@ -37,6 +37,12 @@ app.post('/api/v1/tickets/sync', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Mock server ejecutándose en el puerto ${PORT}. Latencia artificial inyectada: 30ms.`);
-});
+
+// Solo escucha si se ejecuta directamente (node server.js), no al importarlo desde los tests
+if (import.meta.url === `file://${process.argv[1]}`) {
+    app.listen(PORT, () => {
+        console.log(`Mock server ejecutándose en el puerto ${PORT}. Latencia artificial inyectada: 30ms.`);
+    });
+}
+
+export default app;

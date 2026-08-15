@@ -1,7 +1,7 @@
 // db.js
 import Database from 'better-sqlite3';
 
-const db = new Database('cafelaespanola.sqlite');
+const db = new Database(process.env.DB_PATH || 'cafelaespanola.sqlite');
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS tickets (
