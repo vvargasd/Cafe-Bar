@@ -1,0 +1,106 @@
+openapi: 3.0.3
+info:
+  title: Café La Española - API del PC nodo
+  description: >
+    API del backend mock que recibe los tickets sincronizados desde las
+    tablets (RxDB, offline-first). Solo documenta lo que el backend
+    realmente valida y persiste.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: PC nodo local (red de la tienda)
+
+paths:
+  /api/v1/tickets/sync:
+    post:
+      summary: Sincronizar tickets pendientes
+      description: >
+        Recibe los tickets con synced=false acumulados en la tablet y los
+        persiste por upsert (id como llave): reenviar el mismo ticket
+        (reintento de red, cierre presionado varias veces) no duplica la
+        venta, solo actualiza el registro existente.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncRequest'
+      responses:
+        '200':
+          description: Tickets recibidos y guardados.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResponse'
+        '400':
+          description: >
+            Payload inválido: falta el arreglo `tickets`, está vacío, o
+            alguno de sus elementos no cumple el formato mínimo requerido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    SyncRequest:
+      type: object
+      required: [tickets]
+      properties:
+        tickets:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Ticket'
+
+    Ticket:
+      type: object
+      description: >
+        El backend solo valida id, items, total y timestamp. Otros campos
+        que la tablet envía (customerId, settled, settledAt, synced) son
+        de uso exclusivo del modelo local en RxDB: el backend los ignora.
+      required: [id, items, total, timestamp]
+      additionalProperties: true
+      properties:
+        id:
+          type: string
+          description: UUID generado en la tablet. El backend nunca asigna IDs.
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TicketItem'
+        total:
+          type: number
+        timestamp:
+          type: integer
+          description: Epoch ms de cuándo se generó el ticket en la tablet.
+
+    TicketItem:
+      type: object
+      description: Forma esperada de cada ítem; el backend no valida su estructura interna.
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: integer
+
+    SyncResponse:
+      type: object
+      required: [synced]
+      properties:
+        synced:
+          type: array
+          description: IDs de los tickets guardados exitosamente.
+          items:
+            type: string
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
