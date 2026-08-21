@@ -3,11 +3,11 @@
 // ==========================================
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Coffee, CupSoda, Utensils, Candy, Star } from 'lucide-react';
+import { Coffee, CupSoda, Utensils, Candy, Beer, Star } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
 import { formatCOP } from '../utils/currency';
 
-type Category = '⭐ Más Vendidos' | 'Máquina' | 'Nevera' | 'Comida Rápida' | 'Confitería';
+type Category = '⭐ Más Vendidos' | 'Máquina' | 'Nevera' | 'Comida Rápida' | 'Confitería' | 'Licores';
 
 interface MockProduct {
   id: string;
@@ -17,15 +17,32 @@ interface MockProduct {
   isTopSeller: boolean;
 }
 
-// Inventario simulado (fuera del componente: es data estática, no debe recrearse en cada render)
+// Inventario real del café-bar (fuera del componente: es data estática, no debe recrearse en cada render)
 const mockInventory: MockProduct[] = [
-  { id: 'm1', name: 'Capuchino', category: 'Máquina', price: 3000, isTopSeller: true },
-  { id: 'm2', name: 'Aromatica de Panela', category: 'Máquina', price: 2500, isTopSeller: false },
-  { id: 'n1', name: 'Agua Manantial', category: 'Nevera', price: 3000, isTopSeller: true },
-  { id: 'n2', name: 'Cerveza Aguila', category: 'Nevera', price: 3500, isTopSeller: false },
-  { id: 'cr1', name: 'Pastel de Pollo', category: 'Comida Rápida', price: 3000, isTopSeller: true },
-  { id: 'c1', name: 'Chocorramo', category: 'Confitería', price: 2500, isTopSeller: false },
-  { id: 'c2', name: 'Empanada', category: 'Comida Rápida', price: 2500, isTopSeller: true },
+  { id: 'm1', name: 'Tinto', category: 'Máquina', price: 2500, isTopSeller: true },
+  { id: 'm2', name: 'Capuchino', category: 'Máquina', price: 3500, isTopSeller: true },
+  { id: 'm3', name: 'Aromatica de Frutas', category: 'Máquina', price: 4500, isTopSeller: true },
+
+  { id: 'n1', name: 'Cocacola 400 ml', category: 'Nevera', price: 4000, isTopSeller: true },
+  { id: 'n2', name: 'Jugo Hit 500 ml', category: 'Nevera', price: 4000, isTopSeller: true },
+  { id: 'n3', name: 'Cocacola Mini', category: 'Nevera', price: 3000, isTopSeller: true },
+  { id: 'n4', name: 'Bon Yurt Alpina', category: 'Nevera', price: 4000, isTopSeller: false },
+
+  { id: 'cr1', name: 'Empanada', category: 'Comida Rápida', price: 3000, isTopSeller: true },
+  { id: 'cr2', name: 'Pastel de Pollo', category: 'Comida Rápida', price: 3000, isTopSeller: true },
+  { id: 'cr3', name: 'Torta de Queso', category: 'Comida Rápida', price: 4000, isTopSeller: false },
+
+  { id: 'c1', name: 'De Todito BBQ', category: 'Confitería', price: 3500, isTopSeller: true },
+  { id: 'c2', name: 'Papas Super Ricas', category: 'Confitería', price: 3000, isTopSeller: true },
+  { id: 'c3', name: 'Chi Ricos', category: 'Confitería', price: 2500, isTopSeller: false },
+  { id: 'c4', name: 'Chocorramo', category: 'Confitería', price: 4000, isTopSeller: false },
+  { id: 'c5', name: 'Chicharrones de Paquete', category: 'Confitería', price: 5000, isTopSeller: false },
+
+  { id: 'l1', name: 'Coronita', category: 'Licores', price: 4000, isTopSeller: true },
+  { id: 'l2', name: 'Cerveza Aguila', category: 'Licores', price: 4000, isTopSeller: true },
+  { id: 'l3', name: 'Cerveza Heineken', category: 'Licores', price: 3000, isTopSeller: false },
+  { id: 'l4', name: 'Club Colombia', category: 'Licores', price: 4000, isTopSeller: false },
+  { id: 'l5', name: 'Cola y Pola', category: 'Licores', price: 4000, isTopSeller: false },
 ];
 
 export const ProductCatalog: React.FC = () => {
@@ -38,7 +55,8 @@ export const ProductCatalog: React.FC = () => {
     'Máquina',
     'Nevera',
     'Comida Rápida',
-    'Confitería'
+    'Confitería',
+    'Licores'
   ];
 
   // ==========================================
@@ -54,9 +72,11 @@ export const ProductCatalog: React.FC = () => {
         return <CupSoda aria-hidden="true" className="w-8 h-8 text-[#0288D1]" />; // Azul frío
       case 'Comida Rápida': 
         return <Utensils aria-hidden="true" className="w-8 h-8 text-[#E64A19]" />; // Naranja apetitoso
-      case 'Confitería': 
+      case 'Confitería':
         return <Candy aria-hidden="true" className="w-8 h-8 text-[#C2185B]" />; // Rosa dulce
-      default: 
+      case 'Licores':
+        return <Beer aria-hidden="true" className="w-8 h-8 text-[#B8860B]" />; // Amarillo mostaza opaco
+      default:
         return <Star aria-hidden="true" className="w-8 h-8 text-[#FFC107]" />; // Dorado por defecto
     }
   };
