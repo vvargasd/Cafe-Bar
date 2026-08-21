@@ -22,6 +22,9 @@ export default defineConfig({
         theme_color: '#3E2723',
         background_color: '#FAF8F5',
         display: 'standalone',
+        // El layout 70/30 de PosScreen (CLAUDE.md) nunca se pensó para vertical:
+        // esto bloquea la orientación a horizontal cuando la app corre instalada.
+        orientation: 'landscape',
         // Relativo, no absoluto: así funciona tanto en raíz (LAN/preview) como bajo /Cafe-Bar/ (GitHub Pages)
         start_url: '.',
         icons: [
